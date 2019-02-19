@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2043
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snake_Kinda v2.0", "Snake_Kinda v2.0\Snake_Kinda v2.0.csproj", "{48A54911-DFF7-4C0E-BFD6-3D667EAF93EB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{48A54911-DFF7-4C0E-BFD6-3D667EAF93EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48A54911-DFF7-4C0E-BFD6-3D667EAF93EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48A54911-DFF7-4C0E-BFD6-3D667EAF93EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48A54911-DFF7-4C0E-BFD6-3D667EAF93EB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A5C2CB57-69C0-41F2-ADFA-3DA470B4341B}
+	EndGlobalSection
+EndGlobal
