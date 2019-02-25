@@ -10,16 +10,23 @@ namespace platform_3d
     public class Game1 : Game
     {
         GraphicsDeviceManager graphics;
-
+        Model model,model2;
         Vector3 cameraPosition = new Vector3(0, 500, 0);
         Matrix projectionMatrix;
         Matrix viewMatrix;
-        BasicEffect basicEffect;
+        Matrix worldMatrix;
+        Vector3 modelPosition;
+        BasicEffect basicEffect,xyzEffect;
         MouseState originalMouseState;
-        VertexPositionColor[] triangleVertices, crvenaX, zelenaY, plavaZ;
-        VertexBuffer vertexBuffer;
+        VertexPositionColor[] crvenaX, zelenaY, plavaZ;
         VertexBuffer[] xyzBuffer;
-        int _x = 100, _y = 100;
+        VertexPositionTexture[] textVert; 
+        Texture2D grass;
+
+        VertexBuffer vertexBuffer;
+        IndexBuffer indexBuffer;
+        int _x, _y;
+
         int polje;
         const float rotationSpeed = 0.3f;
         float updownRot = -MathHelper.Pi / 10f;
@@ -27,6 +34,11 @@ namespace platform_3d
         float moveSpeed = 120f;
         bool hasJumped = false;
         float jumpVelocity = 0;
+        float modelRotation = 0.0f;
+        float speedX;
+        float speedZ;
+        float znak=1f;
+        short[] indexText = new short[] { 0, 1, 2, 0, 3, 1 };
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -42,19 +54,31 @@ namespace platform_3d
             base.Initialize();
             Mouse.SetPosition((int)GraphicsDevice.Viewport.Width / 2, (int)GraphicsDevice.Viewport.Height / 2);
             originalMouseState = Mouse.GetState();
-            polje = 6 * _x * _y;
+            polje = 4;
             projectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45f), GraphicsDevice.DisplayMode.AspectRatio, 1f, 100000f);
-
+            worldMatrix= Matrix.Identity;
             basicEffect = new BasicEffect(GraphicsDevice);
             basicEffect.Alpha = 1f;
-            basicEffect.VertexColorEnabled = true;
             basicEffect.LightingEnabled = false;
-
-            triangleVertices = new VertexPositionColor[polje];
+            basicEffect.Texture = grass;
+            basicEffect.TextureEnabled = true;
+            modelPosition = Vector3.Zero;
+            textVert = new VertexPositionTexture[polje];
+            vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionTexture), polje, BufferUsage.WriteOnly);
+            indexBuffer = new IndexBuffer(graphics.GraphicsDevice, typeof(short), indexText.Length, BufferUsage.WriteOnly);
+            indexBuffer.SetData(indexText);
+            Xyz();
+            Terrain();
+        }
+        protected void Xyz()
+        {
+            xyzEffect = new BasicEffect(GraphicsDevice);
+            xyzEffect.Alpha = 1f;
+            xyzEffect.VertexColorEnabled = true;
+            xyzEffect.LightingEnabled = false;
             crvenaX = new VertexPositionColor[2];
             zelenaY = new VertexPositionColor[2];
             plavaZ = new VertexPositionColor[2];
-            vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor), polje, BufferUsage.WriteOnly);
             xyzBuffer = new VertexBuffer[3];
             for (int i = 0; i < 3; i++) xyzBuffer[i] = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor), 2, BufferUsage.WriteOnly);
             crvenaX[0] = new VertexPositionColor(new Vector3(100000, 0, 0), Color.Red);
@@ -66,44 +90,28 @@ namespace platform_3d
             xyzBuffer[0].SetData<VertexPositionColor>(crvenaX);
             xyzBuffer[1].SetData<VertexPositionColor>(zelenaY);
             xyzBuffer[2].SetData<VertexPositionColor>(plavaZ);
-            Terrain();
         }
         protected void Terrain()
         {
-            bool flip = true;
-            int x = 0;
-            for (int i = 0; i < _x; i++)
-            {
-                for (int j = 0; j < _y; j++)
-                {
-                    if (flip)
-                    {
-                        triangleVertices[x++] = new VertexPositionColor(new Vector3(20 + i * 20 - 1000, 0, 0 + j * (20) - 1000), Color.Black);
-                        triangleVertices[x++] = new VertexPositionColor(new Vector3(0 + i * 20 - 1000, 0, 0 + j * (20) - 1000), Color.Black);
-                        triangleVertices[x++] = new VertexPositionColor(new Vector3(0 + i * 20 - 1000, 0, 20 + j * (20) - 1000), Color.Black);
-                        triangleVertices[x++] = new VertexPositionColor(new Vector3(20 + i * 20 - 1000, 0, 0 + j * (20) - 1000), Color.Black);
-                        triangleVertices[x++] = new VertexPositionColor(new Vector3(20 + i * 20 - 1000, 0, 20 + j * (20) - 1000), Color.Black);
-                        triangleVertices[x++] = new VertexPositionColor(new Vector3(0 + i * 20 - 1000, 0, 20 + j * (20) - 1000), Color.Black);
-                    }
-                    else
-                    {
-                        triangleVertices[x++] = new VertexPositionColor(new Vector3(20 + i * 20 - 1000, 0, 0 + j * (20) - 1000), Color.White);
-                        triangleVertices[x++] = new VertexPositionColor(new Vector3(0 + i * 20 - 1000, 0, 0 + j * (20) - 1000), Color.White);
-                        triangleVertices[x++] = new VertexPositionColor(new Vector3(0 + i * 20 - 1000, 0, 20 + j * (20) - 1000), Color.White);
-                        triangleVertices[x++] = new VertexPositionColor(new Vector3(20 + i * 20 - 1000, 0, 0 + j * (20) - 1000), Color.White);
-                        triangleVertices[x++] = new VertexPositionColor(new Vector3(20 + i * 20 - 1000, 0, 20 + j * (20) - 1000), Color.White);
-                        triangleVertices[x++] = new VertexPositionColor(new Vector3(0 + i * 20 - 1000, 0, 20 + j * (20) - 1000), Color.White);
-
-                    }
-                    flip = !flip;
-                }
-                flip = !flip;
-            }
-
-            vertexBuffer.SetData<VertexPositionColor>(triangleVertices);
+            textVert[0] = new VertexPositionTexture();
+            textVert[0].Position = new Vector3(2000, 0, 2000);
+            textVert[0].TextureCoordinate = new Vector2(0, 0);
+            textVert[1] = new VertexPositionTexture();
+            textVert[1].Position = new Vector3(-2000, 0, -2000);
+            textVert[1].TextureCoordinate = new Vector2(1, 0);
+            textVert[2] = new VertexPositionTexture();
+            textVert[2].Position = new Vector3(-2000, 0, 2000);
+            textVert[2].TextureCoordinate = new Vector2(0, 1);
+            textVert[3] = new VertexPositionTexture();
+            textVert[3].Position = new Vector3(2000, 0, -2000);
+            textVert[3].TextureCoordinate = new Vector2(1, 1);
+            vertexBuffer.SetData(textVert);
         }
         protected override void LoadContent()
         {
+            model2 = Content.Load<Model>("drvo6");
+            grass = Content.Load<Texture2D>("grass");
+            model = Content.Load<Model>("class2010");
         }
 
         protected override void UnloadContent()
@@ -126,7 +134,10 @@ namespace platform_3d
                     updownRot -= rotationSpeed * yDifference * amount / 1.4f;
                     Mouse.SetPosition((int)GraphicsDevice.Viewport.Width / 2, (int)GraphicsDevice.Viewport.Height / 2);
                 }
-
+                if (modelRotation >= MathHelper.Pi * 2) modelRotation = 0.0f;
+                if (modelRotation < 0) modelRotation = MathHelper.Pi * 2;
+                speedX = (float)Math.Sin(modelRotation)*10;
+                speedZ = (float)Math.Cos(modelRotation)*10;
                 Vector3 moveVector = new Vector3(0, 0, 0);
                 KeyboardState keyState = Keyboard.GetState();
                 if (keyState.IsKeyDown(Keys.Up) || keyState.IsKeyDown(Keys.W)) moveVector.Z -= 1f;
@@ -134,6 +145,10 @@ namespace platform_3d
                 if (keyState.IsKeyDown(Keys.Right) || keyState.IsKeyDown(Keys.D)) moveVector.X += 1f;
                 if (keyState.IsKeyDown(Keys.Left) || keyState.IsKeyDown(Keys.A)) moveVector.X -= 1f;
                 cameraPosition.Y -= jumpVelocity;
+                if (keyState.IsKeyDown(Keys.NumPad8)) { znak = 1f; modelPosition += new Vector3(1 * speedX, 0, 1 * speedZ); }
+                if (keyState.IsKeyDown(Keys.NumPad5)) { znak = -1f; modelPosition += new Vector3(-1 * speedX, 0, -1 * speedZ); }
+                if (keyState.IsKeyDown(Keys.NumPad4)) modelRotation += 10 * MathHelper.ToRadians(0.1f)*znak;
+                if (keyState.IsKeyDown(Keys.NumPad6)) modelRotation -= 10 * MathHelper.ToRadians(0.1f)*znak;
                 if (keyState.IsKeyDown(Keys.Space) && !hasJumped)
                 {
                     cameraPosition.Y += 5f;
@@ -173,7 +188,7 @@ namespace platform_3d
                 cameraRotation = Matrix.CreateRotationZ(updownRot)*Matrix.CreateRotationY(leftrightRot);//Z
                 rotatedVector = Vector3.Transform(norm * amount, cameraRotation);
                 cameraPosition += moveSpeed * new Vector3(rotatedVector.X, 0, rotatedVector.Z);
-                //Debug.WriteLine("org:({0},{1},{2}) norm:({3},{4},{5})", moveVector.X, moveVector.Y, moveVector.Z, norm.X, norm.Y, norm.Z);
+                Debug.WriteLine("org:({0},{1},{2}) norm:({3},{4},{5})", moveVector.X, moveVector.Y, moveVector.Z, norm.X, norm.Y, norm.Z);
                 Debug.WriteLine("X:{0} Y:{1} Z:{2}  degrees{3}", cameraPosition.X, cameraPosition.Y, cameraPosition.Z,MathHelper.ToDegrees(updownRot));
                 UpdateViewMatrix();
 
@@ -193,31 +208,64 @@ namespace platform_3d
 
             viewMatrix = Matrix.CreateLookAt(cameraPosition, cameraFinalTarget, cameraRotatedUpVector);
         }
+
         protected override void Draw(GameTime gameTime)
         {
             basicEffect.Projection = projectionMatrix;
             basicEffect.View = viewMatrix;
-
+            xyzEffect.Projection = projectionMatrix;
+            xyzEffect.View = viewMatrix;
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            GraphicsDevice.SetVertexBuffer(vertexBuffer);
 
             RasterizerState rasterizerState = new RasterizerState();
             rasterizerState.CullMode = CullMode.None;
             GraphicsDevice.RasterizerState = rasterizerState;
 
+            GraphicsDevice.SetVertexBuffer(vertexBuffer);
+            GraphicsDevice.Indices = indexBuffer;
             foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, polje);
+                GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, 0, indexText.Length/3);
+            }
+            Matrix[] modelTransformations = new Matrix[model.Bones.Count];
+            model.CopyAbsoluteBoneTransformsTo(modelTransformations);
+            
+            foreach (ModelMesh mesh in model.Meshes)
+            {
+                foreach (BasicEffect effect in mesh.Effects)
+                {
+                    effect.World = modelTransformations[mesh.ParentBone.Index] * Matrix.CreateRotationY(modelRotation) * Matrix.CreateTranslation(modelPosition);
+                    effect.EnableDefaultLighting();
+                    //effect.AmbientLightColor = Vector3.Up;
+                    effect.View = viewMatrix;
+                    effect.Projection = projectionMatrix;
+                    mesh.Draw();
+                }
+                
+            }
+            
+            foreach (ModelMesh mesh in model2.Meshes)
+            {
+                foreach (BasicEffect effect in mesh.Effects)
+                {
+                    effect.World = worldMatrix;
+                    effect.EnableDefaultLighting();
+                    effect.AmbientLightColor = Vector3.Right;
+                    effect.View = viewMatrix;
+                    effect.Projection = projectionMatrix;
+                    mesh.Draw();
+                }
+
             }
 
             for (int i = 0; i < 3; i++)
             {
                 GraphicsDevice.SetVertexBuffer(xyzBuffer[i]);
-                foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
+                foreach (EffectPass pass in xyzEffect.CurrentTechnique.Passes)
                 {
                     pass.Apply();
-                    GraphicsDevice.DrawPrimitives(PrimitiveType.LineList, 0, polje);
+                    GraphicsDevice.DrawPrimitives(PrimitiveType.LineList, 0, 2);
                 }
             }
             base.Draw(gameTime);
