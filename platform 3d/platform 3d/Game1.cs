@@ -10,23 +10,18 @@ namespace platform_3d
     public class Game1 : Game
     {
         GraphicsDeviceManager graphics;
-        Model model,model2;
         Vector3 cameraPosition = new Vector3(0, 500, 0);
         Matrix projectionMatrix;
         Matrix viewMatrix;
         Matrix worldMatrix;
-        Vector3 modelPosition;
         BasicEffect basicEffect,xyzEffect;
         MouseState originalMouseState;
         VertexPositionColor[] crvenaX, zelenaY, plavaZ;
         VertexBuffer[] xyzBuffer;
         VertexPositionTexture[] textVert; 
-        Texture2D grass;
 
         VertexBuffer vertexBuffer;
         IndexBuffer indexBuffer;
-        int _x, _y;
-
         int polje;
         const float rotationSpeed = 0.3f;
         float updownRot = -MathHelper.Pi / 10f;
@@ -34,10 +29,6 @@ namespace platform_3d
         float moveSpeed = 120f;
         bool hasJumped = false;
         float jumpVelocity = 0;
-        float modelRotation = 0.0f;
-        float speedX;
-        float speedZ;
-        float znak=1f;
         short[] indexText = new short[] { 0, 1, 2, 0, 3, 1 };
         public Game1()
         {
@@ -60,9 +51,6 @@ namespace platform_3d
             basicEffect = new BasicEffect(GraphicsDevice);
             basicEffect.Alpha = 1f;
             basicEffect.LightingEnabled = false;
-            basicEffect.Texture = grass;
-            basicEffect.TextureEnabled = true;
-            modelPosition = Vector3.Zero;
             textVert = new VertexPositionTexture[polje];
             vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionTexture), polje, BufferUsage.WriteOnly);
             indexBuffer = new IndexBuffer(graphics.GraphicsDevice, typeof(short), indexText.Length, BufferUsage.WriteOnly);
@@ -109,9 +97,7 @@ namespace platform_3d
         }
         protected override void LoadContent()
         {
-            model2 = Content.Load<Model>("drvo6");
-            grass = Content.Load<Texture2D>("grass");
-            model = Content.Load<Model>("class2010");
+            
         }
 
         protected override void UnloadContent()
@@ -134,10 +120,6 @@ namespace platform_3d
                     updownRot -= rotationSpeed * yDifference * amount / 1.4f;
                     Mouse.SetPosition((int)GraphicsDevice.Viewport.Width / 2, (int)GraphicsDevice.Viewport.Height / 2);
                 }
-                if (modelRotation >= MathHelper.Pi * 2) modelRotation = 0.0f;
-                if (modelRotation < 0) modelRotation = MathHelper.Pi * 2;
-                speedX = (float)Math.Sin(modelRotation)*10;
-                speedZ = (float)Math.Cos(modelRotation)*10;
                 Vector3 moveVector = new Vector3(0, 0, 0);
                 KeyboardState keyState = Keyboard.GetState();
                 if (keyState.IsKeyDown(Keys.Up) || keyState.IsKeyDown(Keys.W)) moveVector.Z -= 1f;
@@ -145,10 +127,6 @@ namespace platform_3d
                 if (keyState.IsKeyDown(Keys.Right) || keyState.IsKeyDown(Keys.D)) moveVector.X += 1f;
                 if (keyState.IsKeyDown(Keys.Left) || keyState.IsKeyDown(Keys.A)) moveVector.X -= 1f;
                 cameraPosition.Y -= jumpVelocity;
-                if (keyState.IsKeyDown(Keys.NumPad8)) { znak = 1f; modelPosition += new Vector3(1 * speedX, 0, 1 * speedZ); }
-                if (keyState.IsKeyDown(Keys.NumPad5)) { znak = -1f; modelPosition += new Vector3(-1 * speedX, 0, -1 * speedZ); }
-                if (keyState.IsKeyDown(Keys.NumPad4)) modelRotation += 10 * MathHelper.ToRadians(0.1f)*znak;
-                if (keyState.IsKeyDown(Keys.NumPad6)) modelRotation -= 10 * MathHelper.ToRadians(0.1f)*znak;
                 if (keyState.IsKeyDown(Keys.Space) && !hasJumped)
                 {
                     cameraPosition.Y += 5f;
@@ -188,8 +166,6 @@ namespace platform_3d
                 cameraRotation = Matrix.CreateRotationZ(updownRot)*Matrix.CreateRotationY(leftrightRot);//Z
                 rotatedVector = Vector3.Transform(norm * amount, cameraRotation);
                 cameraPosition += moveSpeed * new Vector3(rotatedVector.X, 0, rotatedVector.Z);
-                Debug.WriteLine("org:({0},{1},{2}) norm:({3},{4},{5})", moveVector.X, moveVector.Y, moveVector.Z, norm.X, norm.Y, norm.Z);
-                Debug.WriteLine("X:{0} Y:{1} Z:{2}  degrees{3}", cameraPosition.X, cameraPosition.Y, cameraPosition.Z,MathHelper.ToDegrees(updownRot));
                 UpdateViewMatrix();
 
                 base.Update(gameTime);
@@ -228,6 +204,7 @@ namespace platform_3d
                 pass.Apply();
                 GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, 0, indexText.Length/3);
             }
+            /*
             Matrix[] modelTransformations = new Matrix[model.Bones.Count];
             model.CopyAbsoluteBoneTransformsTo(modelTransformations);
             
@@ -258,7 +235,7 @@ namespace platform_3d
                 }
 
             }
-
+            */
             for (int i = 0; i < 3; i++)
             {
                 GraphicsDevice.SetVertexBuffer(xyzBuffer[i]);
